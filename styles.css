@@ -1,0 +1,297 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-dark: #0a1929;
+    --secondary-dark: #132f4c;
+    --tertiary-dark: #1e3a5f;
+    --accent-blue: #2e7de9;
+    --accent-light: #5ba8ff;
+    --accent-glow: #1c5cb8;
+    --text-primary: #ffffff;
+    --text-secondary: #b0bec5;
+    --success: #4caf50;
+    --error: #f44336;
+    --warning: #ff9800;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+/* ==================== LOADING SCREEN ==================== */
+#loadingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a1929 0%, #1a2332 50%, #0a1929 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 0.5s, visibility 0.5s;
+}
+
+#loadingScreen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-logo {
+    font-size: 64px;
+    margin-bottom: 30px;
+    animation: pulse 2s infinite;
+}
+
+.loading-text {
+    font-size: 28px;
+    font-weight: 600;
+    background: linear-gradient(90deg, #2e7de9, #5ba8ff, #2e7de9);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--tertiary-dark);
+    border-top: 4px solid var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ==================== SERVER OFFLINE SCREEN ==================== */
+#offlineScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a1929 0%, #1a2332 100%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 40px;
+}
+
+#offlineScreen.active {
+    display: flex;
+}
+
+.offline-icon {
+    font-size: 120px;
+    color: var(--warning);
+    margin-bottom: 30px;
+    animation: float 3s ease-in-out infinite;
+}
+
+.offline-title {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.offline-message {
+    font-size: 18px;
+    color: var(--text-secondary);
+    text-align: center;
+    max-width: 600px;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.contact-card {
+    background: var(--secondary-dark);
+    padding: 30px 40px;
+    border-radius: 20px;
+    border: 2px solid var(--tertiary-dark);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+}
+
+.contact-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--accent-light);
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    font-size: 16px;
+}
+
+.contact-item i {
+    color: var(--accent-blue);
+    font-size: 20px;
+    width: 30px;
+}
+
+.contact-item a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.contact-item a:hover {
+    color: var(--accent-light);
+}
+
+.retry-btn {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-glow));
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 20px rgba(46, 125, 233, 0.4);
+}
+
+.retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(46, 125, 233, 0.6);
+}
+
+/* ==================== UTILITIES ==================== */
+.hidden {
+    display: none !important;
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--primary-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--tertiary-dark);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .loading-text {
+        font-size: 22px;
+    }
+
+    .offline-title {
+        font-size: 28px;
+    }
+
+    .offline-message {
+        font-size: 16px;
+    }
+
+    .offline-icon {
+        font-size: 80px;
+    }
+
+    .contact-card {
+        padding: 20px 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-logo {
+        font-size: 48px;
+    }
+
+    .loading-text {
+        font-size: 20px;
+    }
+
+    .offline-title {
+        font-size: 24px;
+    }
+
+    .offline-message {
+        font-size: 14px;
+        padding: 0 15px;
+    }
+
+    .contact-card {
+        padding: 15px 20px;
+    }
+
+    .contact-item {
+        font-size: 14px;
+    }
+}

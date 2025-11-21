@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot Pro - Authentication</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Auth-specific styles */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: var(--secondary-dark);
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--tertiary-dark);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-light), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--tertiary-dark);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(46, 125, 233, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-glow));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(46, 125, 233, 0.3);
+            margin-top: 10px;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 125, 233, 0.5);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .auth-switch a {
+            color: var(--accent-light);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.15);
+            color: var(--error);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-message {
+            background: rgba(76, 175, 80, 0.15);
+            color: var(--success);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .auth-box {
+                padding: 30px 20px;
+            }
+
+            .auth-title {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 15px;
+            }
+
+            .auth-box {
+                padding: 25px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loading-logo">🤖</div>
+        <div class="loading-text">AI Chatbot Pro</div>
+        <div class="loading-subtitle">Advanced RAG System with Episodic Memory</div>
+        <div class="loader"></div>
+    </div>
+
+    <!-- Server Offline Screen -->
+    <div id="offlineScreen">
+        <i class="fas fa-power-off offline-icon"></i>
+        <h1 class="offline-title">Service Currently Unavailable</h1>
+        <p class="offline-message">
+            The AI Chatbot service is currently offline for maintenance. 
+            Please contact the administrator to request access or check back later.
+        </p>
+        <div class="contact-card">
+            <div class="contact-title">📞 Contact Information</div>
+            <div class="contact-item">
+                <i class="fas fa-phone"></i>
+                <a href="tel:+919459379370">+91 945-937-9370</a>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-envelope"></i>
+                <a href="mailto:admin@aichatbot.pro">admin@aichatbot.pro</a>
+            </div>
+            <div class="contact-item">
+                <i class="fas fa-clock"></i>
+                <span>Response Time: Within 24 hours</span>
+            </div>
+        </div>
+        <button class="retry-btn" onclick="retryConnection()">
+            <i class="fas fa-redo"></i> Try Again
+        </button>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="auth-container hidden">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="auth-logo">🤖</div>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to continue your conversations</p>
+            </div>
+
+            <div id="loginError" class="error-message hidden">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="loginErrorText"></span>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter your username" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Passkey</label>
+                    <input type="password" id="loginPasskey" placeholder="Enter system passkey" required>
+                    <div class="form-hint">Contact admin if you don't have the passkey</div>
+                </div>
+
+                <button type="submit" class="auth-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Don't have an account? <a onclick="showRegister()">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div id="registerScreen" class="auth-container hidden">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="auth-logo">🎉</div>
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Join AI Chatbot Pro today</p>
+            </div>
+
+            <div id="registerError" class="error-message hidden">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="registerErrorText"></span>
+            </div>
+
+            <div id="registerSuccess" class="success-message hidden">
+                <i class="fas fa-check-circle"></i>
+                <span id="registerSuccessText"></span>
+            </div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="registerName" placeholder="Enter your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="registerUsername" placeholder="Choose a username" required>
+                    <div class="form-hint">Minimum 3 characters, lowercase only</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" placeholder="Create a password" required>
+                    <div class="form-hint">Minimum 6 characters</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>System Passkey</label>
+                    <input type="password" id="registerPasskey" placeholder="Enter system passkey" required>
+                    <div class="form-hint">Required for account creation - contact admin</div>
+                </div>
+
+                <button type="submit" class="auth-btn" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </form>
+
+            <div class="auth-switch">
+                Already have an account? <a onclick="showLogin()">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            chatManagerUrl: 'http://localhost:5002',
+            llmServerUrl: '',
+            currentUser: null
+        };
+
+        // Load saved config
+        const savedConfig = localStorage.getItem('chatbot_config');
+        if (savedConfig) {
+            config = JSON.parse(savedConfig);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Show loading screen for 2 seconds
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Check if servers are online
+            console.log('Checking server status...');
+            const serverOnline = await checkServerStatus();
+            console.log('Server online:', serverOnline);
+            
+            // Hide loading screen
+            document.getElementById('loadingScreen').classList.add('hidden');
+            
+            if (!serverOnline) {
+                // Show offline screen if servers are down
+                console.log('Servers offline - showing offline screen');
+                document.getElementById('offlineScreen').classList.add('active');
+                return;
+            }
+            
+            // Servers are online, check authentication
+            console.log('Servers online - checking authentication...');
+            const authStatus = await checkAuthStatus();
+            console.log('Auth status:', authStatus);
+            
+            if (authStatus.authenticated) {
+                // User is logged in, redirect to main app
+                console.log('User authenticated - redirecting to main app');
+                config.currentUser = authStatus.user;
+                config.llmServerUrl = authStatus.llm_url;
+                localStorage.setItem('chatbot_config', JSON.stringify(config));
+                window.location.href = 'index.html';
+            } else {
+                // User not logged in, show login screen
+                console.log('User not authenticated - showing login screen');
+                showLogin();
+            }
+        });
+
+        async function checkServerStatus() {
+            try {
+                console.log('Checking chat manager at:', config.chatManagerUrl);
+                
+                // Check chat manager
+                const managerResponse = await fetch(`${config.chatManagerUrl}/health`, {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(5000)
+                });
+                
+                console.log('Chat manager response status:', managerResponse.status);
+                
+                if (!managerResponse.ok) {
+                    console.error('Chat manager not responding properly');
+                    return false;
+                }
+
+                const managerData = await managerResponse.json();
+                console.log('Chat manager health:', managerData);
+
+                // Check LLM server if URL is configured
+                if (config.llmServerUrl && config.llmServerUrl.trim() !== '') {
+                    console.log('Checking LLM server at:', config.llmServerUrl);
+                    
+                    try {
+                        const llmResponse = await fetch(`${config.llmServerUrl}/health`, {
+                            method: 'GET',
+                            signal: AbortSignal.timeout(5000)
+                        });
+                        
+                        console.log('LLM server response status:', llmResponse.status);
+                        
+                        if (!llmResponse.ok) {
+                            console.warn('LLM server not responding, but continuing...');
+                        }
+                    } catch (llmError) {
+                        console.warn('LLM server check failed (optional):', llmError.message);
+                    }
+                }
+                
+                console.log('✅ Server check passed');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Server status check failed:', error);
+                return false;
+            }
+        }
+
+        async function checkAuthStatus() {
+            try {
+                console.log('Checking authentication status...');
+                
+                const response = await fetch(`${config.chatManagerUrl}/auth/check`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Auth check response status:', response.status);
+                
+                if (!response.ok) {
+                    console.log('Auth check failed with status:', response.status);
+                    return { authenticated: false };
+                }
+                
+                const data = await response.json();
+                console.log('Auth check data:', data);
+                return data;
+                
+            } catch (error) {
+                console.error('Auth check error:', error);
+                return { authenticated: false };
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            clearMessages();
+        }
+
+        function showRegister() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('registerScreen').classList.remove('hidden');
+            clearMessages();
+        }
+
+        function clearMessages() {
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('registerError').classList.add('hidden');
+            document.getElementById('registerSuccess').classList.add('hidden');
+        }
+
+        function showError(elementId, textId, message) {
+            document.getElementById(elementId).classList.remove('hidden');
+            document.getElementById(textId).textContent = message;
+        }
+
+        function showSuccess(elementId, textId, message) {
+            document.getElementById(elementId).classList.remove('hidden');
+            document.getElementById(textId).textContent = message;
+        }
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+
+            const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const password = document.getElementById('loginPassword').value;
+            const passkey = document.getElementById('loginPasskey').value;
+
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+
+            try {
+                const response = await fetch(`${config.chatManagerUrl}/auth/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password, passkey })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    config.currentUser = data.user;
+                    config.llmServerUrl = data.llm_url;
+                    localStorage.setItem('chatbot_config', JSON.stringify(config));
+                    
+                    loginBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    window.location.href = 'index.html';
+                } else {
+                    showError('loginError', 'loginErrorText', data.error || 'Login failed');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                }
+            } catch (error) {
+                showError('loginError', 'loginErrorText', 'Network error. Please try again.');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+            }
+        });
+
+        // Register Form Handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearMessages();
+
+            const name = document.getElementById('registerName').value.trim();
+            const username = document.getElementById('registerUsername').value.trim().toLowerCase();
+            const password = document.getElementById('registerPassword').value;
+            const confirm_password = document.getElementById('registerConfirmPassword').value;
+            const passkey = document.getElementById('registerPasskey').value;
+
+            const registerBtn = document.getElementById('registerBtn');
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+
+            try {
+                const response = await fetch(`${config.chatManagerUrl}/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, username, password, confirm_password, passkey })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showSuccess('registerSuccess', 'registerSuccessText', 
+                        'Account created successfully! Redirecting to login...');
+                    registerBtn.innerHTML = '<i class="fas fa-check"></i> Account Created!';
+                    
+                    document.getElementById('registerForm').reset();
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    showLogin();
+                } else {
+                    showError('registerError', 'registerErrorText', data.error || 'Registration failed');
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                }
+            } catch (error) {
+                showError('registerError', 'registerErrorText', 'Network error. Please try again.');
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+            }
+        });
+
+        window.showLogin = showLogin;
+        window.showRegister = showRegister;
+        
+        // Retry connection function
+        window.retryConnection = async function() {
+            console.log('Retrying connection...');
+            
+            // Show loading screen
+            document.getElementById('offlineScreen').classList.remove('active');
+            document.getElementById('loadingScreen').classList.remove('hidden');
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const serverOnline = await checkServerStatus();
+            
+            document.getElementById('loadingScreen').classList.add('hidden');
+            
+            if (serverOnline) {
+                console.log('Servers back online!');
+                const authStatus = await checkAuthStatus();
+                
+                if (authStatus.authenticated) {
+                    config.currentUser = authStatus.user;
+                    config.llmServerUrl = authStatus.llm_url;
+                    localStorage.setItem('chatbot_config', JSON.stringify(config));
+                    window.location.href = 'index.html';
+                } else {
+                    showLogin();
+                }
+            } else {
+                console.log('Servers still offline');
+                document.getElementById('offlineScreen').classList.add('active');
+            }
+        };
+    </script>
+</body>
+</html>
