@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot Pro - Authentication</title>
+    <title>OmniMind AI - Authentication</title>
+    <link rel="icon" type="image/png" href="OmniMind.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -183,8 +184,10 @@
 <body>
     <!-- Loading Screen -->
     <div id="loadingScreen">
-        <div class="loading-logo">🤖</div>
-        <div class="loading-text">AI Chatbot Pro</div>
+        <div class="loading-logo">
+            <img src="OmniMind.png" alt="Logo" onerror="this.outerHTML='<div style=&quot;font-size:64px&quot;>🤖</div>'">
+        </div>
+        <div class="loading-text">OmniMind AI</div>
         <div class="loading-subtitle">Advanced RAG System with Episodic Memory</div>
         <div class="loader"></div>
     </div>
@@ -194,18 +197,18 @@
         <i class="fas fa-power-off offline-icon"></i>
         <h1 class="offline-title">Service Currently Unavailable</h1>
         <p class="offline-message">
-            The AI Chatbot service is currently offline for maintenance. 
+            The OmniMind AI is currently offline for maintenance. 
             Please contact the administrator to request access or check back later.
         </p>
         <div class="contact-card">
             <div class="contact-title">📞 Contact Information</div>
             <div class="contact-item">
                 <i class="fas fa-phone"></i>
-                <a href="tel:+919459379370">+91 945-937-9370</a>
+                <a href="tel:+917875480054">+91 787-548-0054</a>
             </div>
             <div class="contact-item">
                 <i class="fas fa-envelope"></i>
-                <a href="mailto:admin@aichatbot.pro">admin@aichatbot.pro</a>
+                <a href="mailto:skumarkumavat@gmail.com">skumarkumavat@gmail.com</a>
             </div>
             <div class="contact-item">
                 <i class="fas fa-clock"></i>
@@ -221,7 +224,9 @@
     <div id="loginScreen" class="auth-container hidden">
         <div class="auth-box">
             <div class="auth-header">
-                <div class="auth-logo">🤖</div>
+                <div class="auth-logo">
+                    <img src="OmniMind.png" alt="Logo" style="width:80px;height:80px;border-radius:50%;object-fit:cover;" onerror="this.outerHTML='<div style=&quot;font-size:48px&quot;>🤖</div>'">
+                </div>
                 <h1 class="auth-title">Welcome Back</h1>
                 <p class="auth-subtitle">Sign in to continue your conversations</p>
             </div>
@@ -263,9 +268,11 @@
     <div id="registerScreen" class="auth-container hidden">
         <div class="auth-box">
             <div class="auth-header">
-                <div class="auth-logo">🎉</div>
+                <div class="auth-logo">
+                    <img src="OmniMind.png" alt="Logo" style="width:80px;height:80px;border-radius:50%;object-fit:cover;" onerror="this.outerHTML='<div style=&quot;font-size:48px&quot;>🎉</div>'">
+                </div>
                 <h1 class="auth-title">Create Account</h1>
-                <p class="auth-subtitle">Join AI Chatbot Pro today</p>
+                <p class="auth-subtitle">Join OmniMind AI today</p>
             </div>
 
             <div id="registerError" class="error-message hidden">
@@ -318,287 +325,219 @@
         </div>
     </div>
 
-    <script>
-        // Configuration
-        let config = {
-            chatManagerUrl: 'http://localhost:5002',
-            llmServerUrl: '',
-            currentUser: null
-        };
+    
 
-        // Load saved config
-        const savedConfig = localStorage.getItem('chatbot_config');
-        if (savedConfig) {
-            config = JSON.parse(savedConfig);
+    <script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    let config = {
+        chatManagerUrl: 'http://127.0.0.1:5002',
+        llmServerUrl: '',
+        currentUser: null
+    };
+
+    const savedConfig = localStorage.getItem('chatbot_config');
+    if (savedConfig) config = JSON.parse(savedConfig);
+
+    // ============================================
+    // MAIN INITIALIZATION
+    // ============================================
+    document.addEventListener('DOMContentLoaded', async () => {
+        await new Promise(r => setTimeout(r, 2000));
+
+        console.log("Checking server health...");
+        const serverOnline = await checkServerStatus();
+        document.getElementById('loadingScreen').classList.add('hidden');
+
+        if (!serverOnline) {
+            document.getElementById("offlineScreen").classList.add("active");
+            return;
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Show loading screen for 2 seconds
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Check if servers are online
-            console.log('Checking server status...');
-            const serverOnline = await checkServerStatus();
-            console.log('Server online:', serverOnline);
-            
-            // Hide loading screen
-            document.getElementById('loadingScreen').classList.add('hidden');
-            
-            if (!serverOnline) {
-                // Show offline screen if servers are down
-                console.log('Servers offline - showing offline screen');
-                document.getElementById('offlineScreen').classList.add('active');
+        // Check if user is already authenticated
+        const authStatus = await checkAuthStatus();
+
+        if (authStatus.authenticated) {
+            config.currentUser = authStatus.user;
+            config.llmServerUrl = authStatus.llm_url;
+            localStorage.setItem("chatbot_config", JSON.stringify(config));
+            window.location.href = "index.html";
+            return;
+        }
+
+        // Not authenticated → show login screen
+        showLogin();
+
+        // AFTER login screen is visible → now elements exist!
+        console.log("Attaching login + register listeners...");
+
+        document.getElementById("loginForm")
+            .addEventListener("submit", loginHandler);
+
+        document.getElementById("registerForm")
+            .addEventListener("submit", registerHandler);
+    });
+
+    // ============================================
+    // SERVER CHECKS
+    // ============================================
+    async function checkServerStatus() {
+        try {
+            const res = await fetch(`${config.chatManagerUrl}/health`, {
+                method: "GET",
+                signal: AbortSignal.timeout(5000)
+            });
+
+            return res.ok;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    async function checkAuthStatus() {
+        try {
+            const res = await fetch(`${config.chatManagerUrl}/auth/check`, {
+                method: "GET",
+                credentials: "include"
+            });
+
+            if (!res.ok) return { authenticated: false };
+            return await res.json();
+
+        } catch (err) {
+            return { authenticated: false };
+        }
+    }
+
+    // ============================================
+    // LOGIN UI HELPERS
+    // ============================================
+    function showLogin() {
+        document.getElementById('registerScreen').classList.add('hidden');
+        document.getElementById('loginScreen').classList.remove('hidden');
+        clearMessages();
+    }
+
+    function showRegister() {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('registerScreen').classList.remove('hidden');
+        clearMessages();
+    }
+
+    function clearMessages() {
+        document.getElementById('loginError').classList.add('hidden');
+        document.getElementById('registerError').classList.add('hidden');
+        document.getElementById('registerSuccess').classList.add('hidden');
+    }
+
+    function showError(id, textId, msg) {
+        document.getElementById(id).classList.remove("hidden");
+        document.getElementById(textId).textContent = msg;
+    }
+
+    function showSuccess(id, textId, msg) {
+        document.getElementById(id).classList.remove("hidden");
+        document.getElementById(textId).textContent = msg;
+    }
+
+    // ============================================
+    // LOGIN HANDLER
+    // ============================================
+    async function loginHandler(e) {
+        e.preventDefault();
+        clearMessages();
+
+        const username = document.getElementById('loginUsername').value.trim().toLowerCase();
+        const password = document.getElementById('loginPassword').value;
+        const passkey = document.getElementById('loginPasskey').value;
+
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+
+        try {
+            const res = await fetch(`${config.chatManagerUrl}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ username, password, passkey })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                showError("loginError", "loginErrorText", data.error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
                 return;
             }
-            
-            // Servers are online, check authentication
-            console.log('Servers online - checking authentication...');
-            const authStatus = await checkAuthStatus();
-            console.log('Auth status:', authStatus);
-            
-            if (authStatus.authenticated) {
-                // User is logged in, redirect to main app
-                console.log('User authenticated - redirecting to main app');
-                config.currentUser = authStatus.user;
-                config.llmServerUrl = authStatus.llm_url;
-                localStorage.setItem('chatbot_config', JSON.stringify(config));
-                window.location.href = 'index.html';
-            } else {
-                // User not logged in, show login screen
-                console.log('User not authenticated - showing login screen');
-                showLogin();
+
+            // SUCCESS
+            config.currentUser = data.user;
+            config.llmServerUrl = data.llm_url;
+            localStorage.setItem("chatbot_config", JSON.stringify(config));
+
+            window.location.href = "index.html";
+
+        } catch (err) {
+            showError("loginError", "loginErrorText", "Network error");
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+    }
+
+    // ============================================
+    // REGISTER HANDLER
+    // ============================================
+    async function registerHandler(e) {
+        e.preventDefault();
+        clearMessages();
+
+        const name = document.getElementById('registerName').value.trim();
+        const username = document.getElementById('registerUsername').value.trim().toLowerCase();
+        const password = document.getElementById('registerPassword').value;
+        const confirm_password = document.getElementById('registerConfirmPassword').value;
+        const passkey = document.getElementById('registerPasskey').value;
+
+        const btn = document.getElementById('registerBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+
+        try {
+            const res = await fetch(`${config.chatManagerUrl}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name, username, password, confirm_password, passkey
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                showError("registerError", "registerErrorText", data.error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                return;
             }
-        });
 
-        async function checkServerStatus() {
-            try {
-                console.log('Checking chat manager at:', config.chatManagerUrl);
-                
-                // Check chat manager
-                const managerResponse = await fetch(`${config.chatManagerUrl}/health`, {
-                    method: 'GET',
-                    signal: AbortSignal.timeout(5000)
-                });
-                
-                console.log('Chat manager response status:', managerResponse.status);
-                
-                if (!managerResponse.ok) {
-                    console.error('Chat manager not responding properly');
-                    return false;
-                }
+            showSuccess("registerSuccess", "registerSuccessText", "Account created! Redirecting...");
+            document.getElementById("registerForm").reset();
 
-                const managerData = await managerResponse.json();
-                console.log('Chat manager health:', managerData);
+            setTimeout(showLogin, 2000);
 
-                // Check LLM server if URL is configured
-                if (config.llmServerUrl && config.llmServerUrl.trim() !== '') {
-                    console.log('Checking LLM server at:', config.llmServerUrl);
-                    
-                    try {
-                        const llmResponse = await fetch(`${config.llmServerUrl}/health`, {
-                            method: 'GET',
-                            signal: AbortSignal.timeout(5000)
-                        });
-                        
-                        console.log('LLM server response status:', llmResponse.status);
-                        
-                        if (!llmResponse.ok) {
-                            console.warn('LLM server not responding, but continuing...');
-                        }
-                    } catch (llmError) {
-                        console.warn('LLM server check failed (optional):', llmError.message);
-                    }
-                }
-                
-                console.log('✅ Server check passed');
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Server status check failed:', error);
-                return false;
-            }
+        } catch (err) {
+            showError("registerError", "registerErrorText", "Network error");
         }
 
-        async function checkAuthStatus() {
-            try {
-                console.log('Checking authentication status...');
-                
-                const response = await fetch(`${config.chatManagerUrl}/auth/check`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                console.log('Auth check response status:', response.status);
-                
-                if (!response.ok) {
-                    console.log('Auth check failed with status:', response.status);
-                    return { authenticated: false };
-                }
-                
-                const data = await response.json();
-                console.log('Auth check data:', data);
-                return data;
-                
-            } catch (error) {
-                console.error('Auth check error:', error);
-                return { authenticated: false };
-            }
-        }
+        btn.disabled = false;
+    }
 
-        function showLogin() {
-            document.getElementById('registerScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            clearMessages();
-        }
+    window.showLogin = showLogin;
+    window.showRegister = showRegister;
+</script>
 
-        function showRegister() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('registerScreen').classList.remove('hidden');
-            clearMessages();
-        }
-
-        function clearMessages() {
-            document.getElementById('loginError').classList.add('hidden');
-            document.getElementById('registerError').classList.add('hidden');
-            document.getElementById('registerSuccess').classList.add('hidden');
-        }
-
-        function showError(elementId, textId, message) {
-            document.getElementById(elementId).classList.remove('hidden');
-            document.getElementById(textId).textContent = message;
-        }
-
-        function showSuccess(elementId, textId, message) {
-            document.getElementById(elementId).classList.remove('hidden');
-            document.getElementById(textId).textContent = message;
-        }
-
-        // Login Form Handler
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearMessages();
-
-            const username = document.getElementById('loginUsername').value.trim().toLowerCase();
-            const password = document.getElementById('loginPassword').value;
-            const passkey = document.getElementById('loginPasskey').value;
-
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-
-            try {
-                const response = await fetch(`${config.chatManagerUrl}/auth/login`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    credentials: 'include',
-                    body: JSON.stringify({ username, password, passkey })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    config.currentUser = data.user;
-                    config.llmServerUrl = data.llm_url;
-                    localStorage.setItem('chatbot_config', JSON.stringify(config));
-                    
-                    loginBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    window.location.href = 'index.html';
-                } else {
-                    showError('loginError', 'loginErrorText', data.error || 'Login failed');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
-                }
-            } catch (error) {
-                showError('loginError', 'loginErrorText', 'Network error. Please try again.');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
-            }
-        });
-
-        // Register Form Handler
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearMessages();
-
-            const name = document.getElementById('registerName').value.trim();
-            const username = document.getElementById('registerUsername').value.trim().toLowerCase();
-            const password = document.getElementById('registerPassword').value;
-            const confirm_password = document.getElementById('registerConfirmPassword').value;
-            const passkey = document.getElementById('registerPasskey').value;
-
-            const registerBtn = document.getElementById('registerBtn');
-            registerBtn.disabled = true;
-            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
-
-            try {
-                const response = await fetch(`${config.chatManagerUrl}/auth/register`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ name, username, password, confirm_password, passkey })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showSuccess('registerSuccess', 'registerSuccessText', 
-                        'Account created successfully! Redirecting to login...');
-                    registerBtn.innerHTML = '<i class="fas fa-check"></i> Account Created!';
-                    
-                    document.getElementById('registerForm').reset();
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    showLogin();
-                } else {
-                    showError('registerError', 'registerErrorText', data.error || 'Registration failed');
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-                }
-            } catch (error) {
-                showError('registerError', 'registerErrorText', 'Network error. Please try again.');
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
-            }
-        });
-
-        window.showLogin = showLogin;
-        window.showRegister = showRegister;
-        
-        // Retry connection function
-        window.retryConnection = async function() {
-            console.log('Retrying connection...');
-            
-            // Show loading screen
-            document.getElementById('offlineScreen').classList.remove('active');
-            document.getElementById('loadingScreen').classList.remove('hidden');
-            
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            const serverOnline = await checkServerStatus();
-            
-            document.getElementById('loadingScreen').classList.add('hidden');
-            
-            if (serverOnline) {
-                console.log('Servers back online!');
-                const authStatus = await checkAuthStatus();
-                
-                if (authStatus.authenticated) {
-                    config.currentUser = authStatus.user;
-                    config.llmServerUrl = authStatus.llm_url;
-                    localStorage.setItem('chatbot_config', JSON.stringify(config));
-                    window.location.href = 'index.html';
-                } else {
-                    showLogin();
-                }
-            } else {
-                console.log('Servers still offline');
-                document.getElementById('offlineScreen').classList.add('active');
-            }
-        };
-    </script>
 </body>
 </html>
