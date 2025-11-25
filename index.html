@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot Pro - Chat Interface</title>
+    <title>OmniMind AI - Chat Interface</title>
+    <link rel="icon" type="image/png" href="OmniMind.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -754,7 +755,8 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <div class="app-title">AI Chatbot Pro</div>
+                <img src="OmniMind.png" alt="Logo" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:10px;background:darkblue;" onerror="this.style.display='none'">
+                <div class="app-title">OmniMind AI</div>
                 <div class="app-subtitle" id="userWelcome">Welcome!</div>
                 
                 <div class="user-info">
@@ -916,7 +918,7 @@
 
             <div class="form-group">
                 <label>Passkey</label>
-                <input type="password" id="passkeyInput" value="testing123456">
+                <input type="password" id="passkeyInput" value="skumar123">
                 <div class="form-hint">Must match server configuration</div>
             </div>
 
@@ -934,9 +936,9 @@
     <script>
         // Configuration
         let config = {
-            chatManagerUrl: 'http://localhost:5002',
+            chatManagerUrl: 'http://127.0.0.1:5002',
             llmServerUrl: '',
-            passkey: 'testing123456',
+            passkey: '',
             currentUser: null
         };
 
@@ -1520,13 +1522,23 @@
         function addMessageToUI(role, content, animate = true) {
             const chatArea = document.getElementById('chatArea');
             const div = document.createElement('div');
-            div.className = `message ${role}`;
+            
+            // Normalize role: "assistant" or "bot" should both be treated as bot
+            const normalizedRole = (role === 'assistant' || role === 'bot') ? 'bot' : 'user';
+            
+            div.className = `message ${normalizedRole}`;
             if (!animate) div.style.animation = 'none';
             
-            const avatarIcon = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            let avatarContent;
+            if (normalizedRole === 'user') {
+                avatarContent = '<i class="fas fa-user"></i>';
+            } else {
+                // Bot or assistant - show logo
+                avatarContent = '<img src="OmniMind.png" alt="AI" style="width:100%;height:100%;object-fit:cover;border-radius:50%;background:darkblue;" onerror="this.style.display=\'none\';">';
+            }
             
             div.innerHTML = `
-                <div class="avatar">${avatarIcon}</div>
+                <div class="avatar">${avatarContent}</div>
                 <div class="message-content">${escapeHtml(content)}</div>
             `;
             chatArea.appendChild(div);
@@ -1538,7 +1550,9 @@
             const div = document.createElement('div');
             div.className = 'message bot';
             div.innerHTML = `
-                <div class="avatar"><i class="fas fa-robot"></i></div>
+                <div class="avatar">
+                    <img src="OmniMind.png" alt="AI" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none';">
+                </div>
                 <div class="message-content"><span class="streaming-cursor"></span></div>
             `;
             chatArea.appendChild(div);
